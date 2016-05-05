@@ -142,6 +142,8 @@ module Snapshot
       add_media(device_type, :photo, Snapshot.config[:add_photos]) if Snapshot.config[:add_photos]
       add_media(device_type, :video, Snapshot.config[:add_videos]) if Snapshot.config[:add_videos]
 
+      open_simulator_for_device(device_type)
+
       command = TestCommandGenerator.generate(device_type: device_type)
 
       if locale
@@ -184,6 +186,13 @@ module Snapshot
       dir_name = locale || language
 
       return Collector.fetch_screenshots(raw_output, dir_name, device_type, launch_arguments.first)
+    end
+
+    def open_simulator_for_device(device)
+      return unless ENV['FASTLANE_EXPLICIT_OPEN_SIMULATOR']
+
+      UI.message("Explicitly opening simulator for device: #{device_type}")
+      `open -a Simulator --args -CurrentDeviceUDID #{TestCommandGenerator.device_udid(device)}`
     end
 
     def uninstall_app(device_type)
