@@ -13,7 +13,7 @@ module Snapshot
       if File.exist?("./fastlane/snapshot.js") or File.exist?("./snapshot.js")
         UI.error "Found old snapshot configuration file 'snapshot.js'"
         UI.error "You updated to snapshot 1.0 which now uses UI Automation"
-        UI.error "Please follow the migration guide: https://github.com/fastlane/snapshot/blob/master/MigrationGuide.md"
+        UI.error "Please follow the migration guide: https://github.com/fastlane/fastlane/blob/master/snapshot/MigrationGuide.md"
         UI.error "And read the updated documentation: https://github.com/fastlane/fastlane/tree/master/snapshot"
         sleep 3 # to be sure the user sees this, as compiling clears the screen
       end
@@ -22,7 +22,11 @@ module Snapshot
 
       verify_helper_is_current
 
-      FastlaneCore::PrintTable.print_values(config: Snapshot.config, hide_keys: [], title: "Summary for snapshot #{Snapshot::VERSION}")
+      # Also print out the path to the used Xcode installation
+      # We go 2 folders up, to not show "Contents/Developer/"
+      values = Snapshot.config.values(ask: false)
+      values[:xcode_path] = File.expand_path("../..", FastlaneCore::Helper.xcode_path)
+      FastlaneCore::PrintTable.print_values(config: values, hide_keys: [], title: "Summary for snapshot #{Snapshot::VERSION}")
 
       clear_previous_screenshots if Snapshot.config[:clear_previous_screenshots]
 
@@ -32,15 +36,19 @@ module Snapshot
       self.collected_errors = []
       results = {} # collect all the results for a nice table
       launch_arguments_set = config_launch_arguments
-      Snapshot.config[:devices].each do |device|
+      Snapshot.config[:devices].each_with_index do |device, device_index|
         launch_arguments_set.each do |launch_arguments|
-          Snapshot.config[:languages].each do |language|
+          Snapshot.config[:languages].each_with_index do |language, language_index|
             locale = nil
             if language.kind_of?(Array)
               locale = language[1]
               language = language[0]
             end
             results[device] ||= {}
+
+            current_run = device_index * Snapshot.config[:languages].count + language_index + 1
+            number_of_runs = Snapshot.config[:languages].count * Snapshot.config[:devices].count
+            UI.message("snapshot run #{current_run} of #{number_of_runs}")
 
             results[device][language] = run_for_device_and_language(language, locale, device, launch_arguments)
           end
@@ -111,7 +119,6 @@ module Snapshot
     end
 
     # Returns true if it succeded
-    # rubocop:disable Metrics/AbcSize
     def launch(language, locale, device_type, launch_arguments)
       screenshots_path = TestCommandGenerator.derived_data_path
       FileUtils.rm_rf(File.join(screenshots_path, "Logs"))
@@ -190,18 +197,17 @@ module Snapshot
 
       return Collector.fetch_screenshots(raw_output, dir_name, device_type, launch_arguments.first)
     end
-    # rubocop:enable Metrics/AbcSize
 
-    def open_simulator_for_device(device)
+    def open_simulator_for_device(device_name)
       return unless ENV['FASTLANE_EXPLICIT_OPEN_SIMULATOR']
 
-      UI.message("Explicitly opening simulator for device: #{device}")
-      `open -a Simulator --args -CurrentDeviceUDID #{TestCommandGenerator.device_udid(device)}`
+      device = TestCommandGenerator.find_device(device_name)
+      FastlaneCore::Simulator.launch(device) if device
     end
 
     def uninstall_app(device_type)
       UI.verbose "Uninstalling app '#{Snapshot.config[:app_identifier]}' from #{device_type}..."
-      Snapshot.config[:app_identifier] ||= ask("App Identifier: ")
+      Snapshot.config[:app_identifier] ||= UI.input("App Identifier: ")
       device_udid = TestCommandGenerator.device_udid(device_type)
 
       UI.message "Launch Simulator #{device_type}"

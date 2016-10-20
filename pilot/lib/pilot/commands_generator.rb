@@ -1,5 +1,3 @@
-# rubocop:disable Metrics/MethodLength
-# rubocop:disable Metrics/AbcSize
 require "commander"
 require "pilot/options"
 require "fastlane_core"
@@ -29,7 +27,7 @@ module Pilot
       mgr = Pilot::TesterManager.new
       config = FastlaneCore::Configuration.create(Pilot::Options.available_options, convert_options(options))
       args.push(config[:email]) if config[:email] && args.empty?
-      args.push(ask("Email address of the tester: ".yellow)) if args.empty?
+      args.push(UI.input("Email address of the tester: ")) if args.empty?
       failures = []
       args.each do |address|
         config[:email] = address
@@ -138,5 +136,3 @@ module Pilot
     end
   end
 end
-# rubocop:enable Metrics/MethodLength
-# rubocop:enable Metrics/AbcSize

@@ -108,7 +108,7 @@ If you want to enable Application Services for an App ID (HomeKit and HealthKit 
 
     produce enable_services --homekit --healthkit
 
-If you want to disable Application Servies for an App ID (iCloud in this case):
+If you want to disable Application Services for an App ID (iCloud in this case):
 
     produce disable_services --icloud
 
@@ -164,7 +164,7 @@ All available values can also be passed using environment variables, run `produc
 
 Your `Fastfile` should look like this
 ```ruby
-lane :appstore do
+lane :release do
   produce(
     username: 'felix@krausefx.com',
     app_identifier: 'com.krausefx.app',

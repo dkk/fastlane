@@ -1,4 +1,3 @@
-# rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 module Fastlane
   module Actions
     module SharedValues
@@ -6,6 +5,7 @@ module Fastlane
     end
 
     class OclintAction < Action
+      # rubocop:disable Metrics/PerceivedComplexity
       def self.run(params)
         oclint_path = params[:oclint_path]
         if `which #{oclint_path}`.to_s.empty? and !Helper.test?
@@ -190,6 +190,7 @@ module Fastlane
                                        default_value: false)
         ]
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       def self.output
         [
@@ -204,7 +205,41 @@ module Fastlane
       def self.is_supported?(platform)
         true
       end
+
+      def self.details
+        "Run the static analyzer tool [OCLint](http://oclint.org) for your project. You need to have a `compile_commands.json` file in your _fastlane_ directory or pass a path to your file"
+      end
+
+      def self.example_code
+        [
+          'oclint(
+            compile_commands: "commands.json",    # The JSON compilation database, use xctool reporter "json-compilation-database"
+            select_regex: /ViewController.m/,     # Select all files matching this regex
+            exclude_regex: /Test.m/,              # Exclude all files matching this regex
+            report_type: "pmd",                   # The type of the report (default: html)
+            max_priority_1: 10,                   # The max allowed number of priority 1 violations
+            max_priority_2: 100,                  # The max allowed number of priority 2 violations
+            max_priority_3: 1000,                 # The max allowed number of priority 3 violations
+            thresholds: [                         # Override the default behavior of rules
+              "LONG_LINE=200",
+              "LONG_METHOD=200"
+            ],
+            enable_rules: [                       # List of rules to pick explicitly
+              "DoubleNegative",
+              "SwitchStatementsDon\'TNeedDefaultWhenFullyCovered"
+            ],
+            disable_rules: ["GotoStatement"],     # List of rules to disable
+            list_enabled_rules: true,             # List enabled rules
+            enable_clang_static_analyzer: true,   # Enable Clang Static Analyzer, and integrate results into OCLint report
+            enable_global_analysis: true,         # Compile every source, and analyze across global contexts (depends on number of source files, could results in high memory load)
+            allow_duplicated_violations: true     # Allow duplicated violations in the OCLint report
+          )'
+        ]
+      end
+
+      def self.category
+        :testing
+      end
     end
   end
 end
-# rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity

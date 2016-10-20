@@ -23,8 +23,6 @@ module Fastlane
       Fastlane::PluginUpdateManager.show_update_status
     end
 
-    # rubocop:disable Metrics/AbcSize
-    # rubocop:disable Metrics/MethodLength
     def run
       program :version, Fastlane::VERSION
       program :description, [
@@ -43,7 +41,7 @@ module Fastlane
 
       command :trigger do |c|
         c.syntax = 'fastlane [lane]'
-        c.description = 'Run a sepcific lane. Pass the lane name and optionally the platform first.'
+        c.description = 'Run a specific lane. Pass the lane name and optionally the platform first.'
         c.option '--env STRING', String, 'Add environment to use with `dotenv`'
 
         c.action do |args, options|
@@ -57,10 +55,12 @@ module Fastlane
         c.syntax = 'fastlane init'
         c.description = 'Helps you with your initial fastlane setup'
 
+        CrashlyticsBetaCommandLineHandler.apply_options(c)
+
         c.action do |args, options|
-          if args[0] == 'beta' && FastlaneCore::Feature.enabled?('FASTLANE_ENABLE_CRASHLYTICS_BETA_INITIALIZATION')
-            require 'fastlane/setup/crashlytics_beta'
-            Fastlane::CrashlyticsBeta.new.run
+          if args[0] == 'beta'
+            beta_info = CrashlyticsBetaCommandLineHandler.info_from_options(options)
+            Fastlane::CrashlyticsBeta.new(beta_info, Fastlane::CrashlyticsBetaUi.new).run
           else
             Fastlane::Setup.new.run
           end
@@ -158,22 +158,6 @@ module Fastlane
         end
       end
 
-      command :enable_crash_reporting do |c|
-        c.syntax = 'fastlane enable_crash_reporting'
-        c.description = "Deprecated: fastlane doesn't use a crash reporter any more"
-        c.action do |args, options|
-          show_crashreporter_note
-        end
-      end
-
-      command :disable_crash_reporting do |c|
-        c.syntax = 'fastlane disable_crash_reporting'
-        c.description = "Deprecated: fastlane doesn't use a crash reporter any more"
-        c.action do |args, options|
-          show_crashreporter_note
-        end
-      end
-
       command :enable_auto_complete do |c|
         c.syntax = 'fastlane enable_auto_complete'
         c.description = 'Enable tab auto completion'
@@ -255,14 +239,5 @@ module Fastlane
       Fastlane::Setup.new.run if create
       return false
     end
-
-    def show_crashreporter_note
-      UI.important("fastlane doesn't use a crash reporter any more")
-      UI.important("Instead please submit an issue on GitHub: https://github.com/fastlane/fastlane/issues")
-      UI.important("This command will be removed in one of the next releases")
-    end
-
-    # rubocop:enable Metrics/AbcSize
-    # rubocop:enable Metrics/MethodLength
   end
 end

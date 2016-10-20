@@ -2,6 +2,42 @@
 Style/ClassCheck:
   EnforcedStyle: kind_of?
 
+# .length == 0 is also good, we don't always want .zero?
+Style/NumericPredicate:
+  Enabled: false
+
+# this would cause errors with long lanes
+Metrics/BlockLength:
+  Enabled: false
+
+# certificate_1 is an okay variable name
+Style/VariableNumber:
+  Enabled: false
+
+# This is used a lot across the fastlane code base for config files
+Style/MethodMissing:
+  Enabled: false
+
+# 
+#   File.chmod(0777, f)
+# 
+# is easier to read than
+# 
+#   File.chmod(0o777, f)
+# 
+Style/NumericLiteralPrefix:
+  Enabled: false
+
+# 
+# command = (!clean_expired.nil? || !clean_pattern.nil?) ? CLEANUP : LIST
+# 
+# is easier to read than
+# 
+# command = !clean_expired.nil? || !clean_pattern.nil? ? CLEANUP : LIST
+# 
+Style/TernaryParentheses:
+  Enabled: false
+
 # It's better to be more explicit about the type
 Style/BracesAroundHashParameters:
   Enabled: false
@@ -47,9 +83,13 @@ Style/SpecialGlobalVars:
   Enabled: false
 
 Metrics/AbcSize:
-  Max: 60
-  Exclude:
-    - '**/lib/*/options.rb'
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
 
 # The %w might be confusing for new users
 Style/WordArray:
@@ -75,8 +115,6 @@ Style/AndOr:
 Metrics/ClassLength:
   Max: 320
 
-Metrics/CyclomaticComplexity:
-  Max: 17
 
 # Configuration parameters: AllowURI, URISchemes.
 Metrics/LineLength:
@@ -131,13 +169,6 @@ Style/SpaceAroundOperators:
   Exclude:
     - '**/spec/actions_specs/xcodebuild_spec.rb'
 
-Metrics/MethodLength:
-  Exclude:
-    - '**/lib/fastlane/actions/*.rb'
-    - '**/bin/fastlane'
-    - '**/lib/*/options.rb'
-  Max: 60
-
 AllCops:
   Include:
     - '**/fastlane/Fastfile'
@@ -159,4 +190,8 @@ Style/ZeroLengthPredicate:
 
 # Adds complexity
 Style/IfInsideElse:
+  Enabled: false
+
+# Sometimes we just want to 'collect'
+Style/CollectionMethods:
   Enabled: false
